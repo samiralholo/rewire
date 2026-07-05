@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "Rewire",
+    "slug": "rewire",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F4F6F8",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.rewire.bos",
+      "adaptiveIcon": {
+        "backgroundColor": "#F4F6F8"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.rewire.bos",
+      "supportsTablet": false
+    },
+    "plugins": [
+      "expo-localization",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.9.25",
+            "packagingOptions": {
+              "pickFirst": [
+                "**/libc++_shared.so"
+              ]
+            }
+          }
+        }
+      ],
+      "./plugins/withWatermelonJSIFix",
+      "@morrowdigital/watermelondb-expo-plugin",
+      "expo-asset",
+      "expo-font"
+    ],
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b3ac49ce-e3fe-492f-9eb9-017aa61d3d33"
+      }
+    },
+    "owner": "samiralholo"
+  }
+}

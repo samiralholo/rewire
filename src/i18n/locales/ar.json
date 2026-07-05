@@ -1,0 +1,71 @@
+{
+  "common": {
+    "cancel": "إلغاء",
+    "continue": "متابعة",
+    "skip": "تخطي",
+    "save": "حفظ",
+    "loading": "جاري التحضير..."
+  },
+  "app": {
+    "name": "ريواير",
+    "boot_error": "يحتاج التطبيق للحظة. يرجى إعادة فتحه."
+  },
+  "dashboard": {
+    "greeting": "مرحباً بك",
+    "awareness_score": "نقاط الوعي السلوكي",
+    "awareness_caption": "كلما ارتفعت النقاط، زادت اللحظات الواعية في يومك.",
+    "craving_button": "أشعر بالرغبة الآن",
+    "insight_empty": "سيبدأ نموذجك السلوكي بالتشكل قريباً مع أول تفاعل.",
+    "insight_preparing": "نقوم بتحليل أنماطك السلوكية...",
+    "insight_top_trigger": "المحفز الأكثر تكراراً اليوم: {{trigger}}",
+    "tab_home": "الرئيسية",
+    "tab_reflection": "التأملات",
+    "language_toggle": "English"
+  },
+  "vulnerable": {
+    "title": "غالباً ما تكون هذه لحظة حساسة.",
+    "body": "لا ضغوط — مجرد اطمئنان. كيف حالك؟",
+    "dismiss": "أنا بخير، شكراً"
+  },
+  "interceptor": {
+    "capture_title": "ما الذي يحفز هذه الرغبة الآن؟",
+    "capture_hint": "لمسة واحدة تكفي. أفضل تخمين يكفي تماماً.",
+    "capture_skip": "لست متأكداً - تخطي",
+    "offer_title": "هل يمكنك تجربة هذا لعدة دقائق؟",
+    "offer_accept": "سأحاول",
+    "offer_decline": "لا، سأتخطى ذلك",
+    "noted": "تم التسجيل.",
+    "intervening_fallback": "لحظة واحدة في كل مرة.",
+    "intervening_done": "تم",
+    "intervening_stop": "إيقاف مبكر - لا بأس بذلك إطلاقاً",
+    "resolution_title": "كيف تشعر الآن؟",
+    "resolution_hint": "كل إجابة تساعد الخريطة. لا توجد إجابة خاطئة.",
+    "outcome_resisted": "تجاوزت الرغبة",
+    "outcome_delayed": "نجحت في التأجيل",
+    "outcome_completed": "حدث الأمر - تم تسجيل البيانات"
+  },
+  "reflection": {
+    "title": "تأملات المساء",
+    "description": "تسجيل هذه اللحظات يساعد محرك الذكاء السلوكي في فهم محفزاتك بشكل أعمق وتوقعها غداً.",
+    "today_count_zero": "يوم هادئ — لم يُسجَّل شيء.",
+    "today_count_one": "تم تسجيل لحظة واحدة اليوم",
+    "today_count_two": "تم تسجيل لحظتين اليوم",
+    "today_count_few": "تم تسجيل {{count}} لحظات اليوم",
+    "today_count_many": "تم تسجيل {{count}} لحظة اليوم",
+    "today_count_other": "تم تسجيل {{count}} لحظة اليوم",
+    "question_general": "كيف تصف مستوى تحكمك اليوم؟",
+    "control_low": "كان صعباً",
+    "control_mid": "متفاوتاً",
+    "control_high": "مستقراً غالباً",
+    "question_hard_moment": "ما الذي جعل بعض اللحظات أكثر صعوبة اليوم؟",
+    "note_placeholder": "بضع كلمات تكفي...",
+    "save_note": "حفظ الملاحظة",
+    "saved": "تم الحفظ. ليلة هادئة."
+  },
+  "restart": {
+    "title": "إعادة تشغيل مطلوبة",
+    "body": "يتطلب تغيير اتجاه الواجهة إعادة تشغيل سريعة. لن تفقد أي شيء.",
+    "now": "إعادة التشغيل الآن",
+    "later": "لاحقاً"
+  }
+}

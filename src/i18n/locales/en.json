@@ -1,0 +1,68 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "skip": "Skip",
+    "save": "Save",
+    "loading": "Getting ready..."
+  },
+  "app": {
+    "name": "Rewire",
+    "boot_error": "Something needs a moment. Please reopen the app."
+  },
+  "dashboard": {
+    "greeting": "Welcome back",
+    "awareness_score": "Behavioral Awareness Score",
+    "awareness_caption": "Higher means more of your moments happen consciously.",
+    "craving_button": "I feel the urge now",
+    "insight_empty": "Your behavioral map will start taking shape with the first interaction.",
+    "insight_preparing": "Analyzing your behavioral patterns...",
+    "insight_top_trigger": "Today's most frequent cue: {{trigger}}",
+    "tab_home": "Home",
+    "tab_reflection": "Reflection",
+    "language_toggle": "العربية"
+  },
+  "vulnerable": {
+    "title": "This is often a tricky moment.",
+    "body": "No pressure — just checking in. How are you doing?",
+    "dismiss": "I'm okay, thanks"
+  },
+  "interceptor": {
+    "capture_title": "What set this off just now?",
+    "capture_hint": "One tap. Best guess is plenty.",
+    "capture_skip": "Not sure — skip",
+    "offer_title": "Can you try this for a few minutes?",
+    "offer_accept": "I'll try it",
+    "offer_decline": "Not this time",
+    "noted": "Noted.",
+    "intervening_fallback": "One moment at a time.",
+    "intervening_done": "Done",
+    "intervening_stop": "Stop early — that's completely okay",
+    "resolution_title": "How are you feeling now?",
+    "resolution_hint": "Every answer helps the map. There's no wrong one.",
+    "outcome_resisted": "The urge passed",
+    "outcome_delayed": "I managed to delay it",
+    "outcome_completed": "It happened — data recorded"
+  },
+  "reflection": {
+    "title": "Evening Reflection",
+    "description": "Logging these moments helps the behavioral engine understand your cues more deeply and anticipate them tomorrow.",
+    "today_count_zero": "A quiet day — nothing logged.",
+    "today_count_one": "{{count}} moment logged today",
+    "today_count_other": "{{count}} moments logged today",
+    "question_general": "How would you describe your sense of control today?",
+    "control_low": "It was hard",
+    "control_mid": "Up and down",
+    "control_high": "Mostly steady",
+    "question_hard_moment": "What made some moments harder today?",
+    "note_placeholder": "A few words are enough...",
+    "save_note": "Save note",
+    "saved": "Saved. Rest well."
+  },
+  "restart": {
+    "title": "Restart needed",
+    "body": "Switching the layout direction takes effect after a quick restart. Nothing will be lost.",
+    "now": "Restart now",
+    "later": "Later"
+  }
+}
