@@ -20,7 +20,8 @@
     "insight_top_trigger": "Today's most frequent cue: {{trigger}}",
     "tab_home": "Home",
     "tab_reflection": "Reflection",
-    "language_toggle": "العربية"
+    "language_toggle": "العربية",
+    "tab_insights": "Map"
   },
   "vulnerable": {
     "title": "This is often a tricky moment.",
@@ -64,5 +65,11 @@
     "body": "Switching the layout direction takes effect after a quick restart. Nothing will be lost.",
     "now": "Restart now",
     "later": "Later"
+  },
+  "insights": {
+    "title": "Your Habit Map",
+    "description": "Every line is an association your brain has learned. Thicker, closer lines are stronger loops — watch them loosen as you rewire.",
+    "empty": "Your map takes shape after the first few logged moments.",
+    "center_hint": "the habit"
   }
 }

@@ -25,6 +25,7 @@ import { BootProvider } from './presentation/BootContext';
 import { DashboardScreen } from './presentation/screens/DashboardScreen';
 import { InterceptorScreen } from './presentation/screens/InterceptorScreen';
 import { ReflectionScreen } from './presentation/screens/ReflectionScreen';
+import { InsightsScreen } from './presentation/screens/InsightsScreen';
 import { palette, spacing, tapTarget, type } from './presentation/theme';
 
 // Synchronous, before first render: UI strings + domain vocabulary.
@@ -107,7 +108,7 @@ export default function App(): React.JSX.Element {
 // Shell — phase-driven routing + a minimal two-tab bar (no navigator dep)
 // ---------------------------------------------------------------------------
 
-type Tab = 'home' | 'reflection';
+type Tab = 'home' | 'insights' | 'reflection';
 
 function Shell(): React.JSX.Element {
   const { t } = useTranslation();
@@ -123,13 +124,20 @@ function Shell(): React.JSX.Element {
   return (
     <View style={styles.shell}>
       <View style={styles.content}>
-        {tab === 'home' ? <DashboardScreen /> : <ReflectionScreen />}
+        {tab === 'home' && <DashboardScreen />}
+        {tab === 'insights' && <InsightsScreen />}
+        {tab === 'reflection' && <ReflectionScreen />}
       </View>
       <View style={styles.tabBar}>
         <TabButton
           label={t('dashboard.tab_home')}
           active={tab === 'home'}
           onPress={() => setTab('home')}
+        />
+        <TabButton
+          label={t('dashboard.tab_insights')}
+          active={tab === 'insights'}
+          onPress={() => setTab('insights')}
         />
         <TabButton
           label={t('dashboard.tab_reflection')}
