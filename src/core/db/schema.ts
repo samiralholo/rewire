@@ -23,7 +23,7 @@ export const TableName = {
 } as const;
 
 export const schema = appSchema({
-  version: 2,
+  version: 3,
   tables: [
     tableSchema({
       name: TableName.BEHAVIORS,
@@ -47,6 +47,8 @@ export const schema = appSchema({
         { name: 'weight', type: 'number' },
         { name: 'occurrence_count', type: 'number' },
         { name: 'is_system_detected', type: 'boolean' },
+        // JSON-encoded SensorBinding | null (small, read-mostly):
+        { name: 'sensor_binding', type: 'string', isOptional: true },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],

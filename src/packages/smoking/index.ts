@@ -25,6 +25,7 @@ const vocabulary: Vocabulary = {
   en: {
     'behavior.smoking': 'Smoking',
   
+    'place.work': 'Work',
     'trigger.morning_coffee': 'Morning coffee',
     'trigger.after_meal': 'After a meal',
     'trigger.work_break': 'Work break',
@@ -55,6 +56,7 @@ const vocabulary: Vocabulary = {
   ar: {
     'behavior.smoking': 'التدخين',
 
+    'place.work': 'العمل',
     'trigger.morning_coffee': 'قهوة الصباح',
     'trigger.after_meal': 'بعد الطعام',
     'trigger.work_break': 'استراحة العمل',
@@ -97,12 +99,23 @@ const behaviorSeeds: readonly BehaviorSeed[] = [
 const triggerSeeds: readonly TriggerSeed[] = [
   { category: 'temporal',      labelKey: 'trigger.morning_coffee', initialWeight: 0.7 },
   { category: 'activity',      labelKey: 'trigger.after_meal',     initialWeight: 0.8 },
-  { category: 'temporal',      labelKey: 'trigger.work_break',     initialWeight: 0.6 },
+  {
+    category: 'temporal',
+    labelKey: 'trigger.work_break',
+    initialWeight: 0.6,
+    // Dormant until the user pins their workplace (no coordinates in a seed).
+    sensorBinding: { kind: 'geofence', placeKey: 'place.work', radiusM: 150 },
+  },
   { category: 'emotional',     labelKey: 'trigger.stress_spike',   initialWeight: 0.7 },
   { category: 'emotional',     labelKey: 'trigger.boredom',        initialWeight: 0.5 },
   { category: 'social',        labelKey: 'trigger.social_smokers', initialWeight: 0.6 },
   { category: 'social',        labelKey: 'trigger.alcohol',        initialWeight: 0.6 },
-  { category: 'activity',      labelKey: 'trigger.driving',        initialWeight: 0.4 },
+  {
+    category: 'activity',
+    labelKey: 'trigger.driving',
+    initialWeight: 0.4,
+    sensorBinding: { kind: 'movement', movement: 'driving' },
+  },
   { category: 'activity',      labelKey: 'trigger.phone_scroll',   initialWeight: 0.3 },
   { category: 'physiological', labelKey: 'trigger.nicotine_dip',   initialWeight: 0.5 },
 ];

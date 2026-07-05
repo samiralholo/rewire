@@ -165,6 +165,36 @@ export interface CravingEvent {
 }
 
 // ---------------------------------------------------------------------------
+// Sensor bindings — how a trigger can hook into device context
+// ---------------------------------------------------------------------------
+
+/** Coarse physical-activity states the context provider can classify. */
+export type MovementState =
+  | 'stationary'
+  | 'walking'
+  | 'running'
+  | 'driving'
+  | 'unknown';
+
+/**
+ * Optional physical-context hook a trigger can carry. Fully domain-agnostic:
+ * the core only sees activity classes and geometry. Geofence bindings ship
+ * WITHOUT coordinates (a pack cannot know where the user's places are);
+ * `placeKey` names the slot and the user supplies coordinates later.
+ */
+export type SensorBinding =
+  | { kind: 'movement'; movement: Exclude<MovementState, 'unknown'> }
+  | {
+      kind: 'geofence';
+      /** Vocabulary key for the place slot (e.g. resolved as "Work"). */
+      placeKey: string;
+      radiusM: number;
+      /** Set by the user at configuration time; binding is dormant until then. */
+      latitude?: number;
+      longitude?: number;
+    };
+
+// ---------------------------------------------------------------------------
 // Habit Twin graph edge (nodes are the entities above)
 // ---------------------------------------------------------------------------
 

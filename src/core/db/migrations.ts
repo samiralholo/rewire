@@ -6,13 +6,24 @@
  */
 
 import {
-  schemaMigrations,
+  addColumns,
   createTable,
+  schemaMigrations,
 } from '@nozbe/watermelondb/Schema/migrations';
 import { TableName } from './schema';
 
 export const migrations = schemaMigrations({
   migrations: [
+    {
+      // v2 -> v3: sensor bindings on triggers (Sprint 8)
+      toVersion: 3,
+      steps: [
+        addColumns({
+          table: TableName.TRIGGERS,
+          columns: [{ name: 'sensor_binding', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
     {
       // v1 -> v2: end-of-day reflections (Sprint 5)
       toVersion: 2,

@@ -42,6 +42,8 @@ import {
   type PredictionScheduler,
   type PredictionSchedulerOptions,
 } from '../engine/predictionScheduler';
+import type { ContextProvider, GeofenceRegion } from '../sensors/contextProvider';
+import { TriggerModel } from '../db/models';
 import type { BehaviorId, CravingEventId } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -58,6 +60,11 @@ export interface BootstrapOptions {
    * engine can boot headless in tests.
    */
   bindUi?: (actor: ActorRefFrom<CravingMachine>) => () => void;
+  /**
+   * Optional device-context provider (createContextProvider()). Started
+   * during boot; permission denial degrades gracefully to inert.
+   */
+  contextProvider?: ContextProvider;
   /** Scheduler tuning; sensible defaults applied. */
   scheduler?: Partial<PredictionSchedulerOptions>;
   /** Disable the scheduler (tests, storybook). Default: enabled. */
@@ -175,7 +182,42 @@ export async function bootstrap(options: BootstrapOptions): Promise<BootResult> 
   // 5. Bind presentation (if a UI is attached).
   const unbindUi = bindUi?.(actor) ?? null;
 
-  // 6. Start the prediction loop.
+  // 6. Start sensors (optional, permission-graceful) and load any
+  //    user-configured geofence bindings into the provider.
+  const contextProvider = options.contextProvider ?? null;
+  if (contextProvider) {
+    try {
+      await contextProvider.start();
+      const boundTriggers = await database
+        .get<TriggerModel>(TableName.TRIGGERS)
+        .query(
+          Q.where('behavior_id', behaviorId),
+          Q.where('sensor_binding', Q.notEq(null)),
+        )
+        .fetch();
+      const regions = boundTriggers
+        .map((t): GeofenceRegion | null => {
+          const b = t.sensorBinding;
+          return b?.kind === 'geofence' &&
+            b.latitude !== undefined &&
+            b.longitude !== undefined
+            ? {
+                id: t.id,
+                placeKey: b.placeKey,
+                latitude: b.latitude,
+                longitude: b.longitude,
+                radiusM: b.radiusM,
+              }
+            : null;
+        })
+        .filter((r): r is GeofenceRegion => r !== null);
+      contextProvider.setGeofences(regions);
+    } catch (error) {
+      console.warn('[BOS] Sensors unavailable; continuing without them', error);
+    }
+  }
+
+  // 7. Start the prediction loop.
   let scheduler: PredictionScheduler | null = null;
   if (enablePrediction) {
     scheduler = createPredictionScheduler({
@@ -183,6 +225,7 @@ export async function bootstrap(options: BootstrapOptions): Promise<BootResult> 
       actor,
       pack: primaryPack,
       behaviorId,
+      ...(contextProvider ? { contextProvider } : {}),
       ...options.scheduler,
     });
     scheduler.start();
@@ -195,6 +238,7 @@ export async function bootstrap(options: BootstrapOptions): Promise<BootResult> 
     scheduler,
     shutdown: () => {
       scheduler?.stop();
+      contextProvider?.stop();
       unbindUi?.();
       actor.stop();
     },

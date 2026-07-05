@@ -16,10 +16,15 @@ import {
   text,
 } from '@nozbe/watermelondb/decorators';
 import { TableName } from '../schema';
-import type { TriggerCategory } from '../../types';
+import type { SensorBinding, TriggerCategory } from '../../types';
 
 const sanitizeCategories = (raw: unknown): TriggerCategory[] =>
   Array.isArray(raw) ? (raw as TriggerCategory[]) : [];
+
+const sanitizeSensorBinding = (raw: unknown): SensorBinding | null =>
+  raw !== null && typeof raw === 'object' && 'kind' in (raw as object)
+    ? (raw as SensorBinding)
+    : null;
 
 export class BehaviorModel extends Model {
   static table = TableName.BEHAVIORS;
@@ -57,6 +62,8 @@ export class TriggerModel extends Model {
   @field('weight') weight!: number;
   @field('occurrence_count') occurrenceCount!: number;
   @field('is_system_detected') isSystemDetected!: boolean;
+  @json('sensor_binding', sanitizeSensorBinding)
+  sensorBinding!: SensorBinding | null;
   @date('created_at') createdAt!: Date;
   @date('updated_at') updatedAt!: Date;
 

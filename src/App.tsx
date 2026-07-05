@@ -16,6 +16,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { useTranslation } from 'react-i18next';
 import { database } from './core/db/database';
 import { bootstrap, type BootResult } from './core/boot/bootstrap';
+import { createContextProvider } from './core/sensors/contextProvider';
 import { SmokingPackage, SMOKING_PACK_ID } from './packages/smoking';
 import { bindCravingActor, useInterceptorPhase } from './state/uiStore';
 import { initI18n, registerDomainVocabulary } from './i18n';
@@ -51,6 +52,9 @@ export default function App(): React.JSX.Element {
           database,
           packs: [SmokingPackage],
           bindUi: bindCravingActor,
+          // Sensors are optional context: permission denial or missing
+          // hardware quietly reduces the engine to time+history signals.
+          contextProvider: createContextProvider(),
         }),
       )
       .then((boot) => {

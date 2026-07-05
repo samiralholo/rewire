@@ -10,6 +10,8 @@ import type {
   Behavior,
   DomainPackId,
   Intervention,
+  MovementState,
+  SensorBinding,
   Trigger,
   TriggerCategory,
   UnitInterval,
@@ -25,6 +27,11 @@ export type BehaviorSeed = Pick<Behavior, 'labelKey'> & {
 export type TriggerSeed = Pick<Trigger, 'category' | 'labelKey'> & {
   /** Prior weight before any user data exists. */
   initialWeight: UnitInterval;
+  /**
+   * Optional device-context hook (movement class or geofence place slot).
+   * Persisted by the installer; consumed by the prediction scheduler.
+   */
+  sensorBinding?: SensorBinding;
 };
 
 export type InterventionSeed = Omit<
@@ -80,6 +87,8 @@ export interface VulnerabilityContext {
   weekday: number;              // 0-6 (Sunday = 0)
   minutesSinceLastEvent: number | null;
   recentTriggerCategories: readonly TriggerCategory[];
+  /** Live movement classification; 'unknown' when sensors are unavailable. */
+  movement?: MovementState;
 }
 
 // ---------------------------------------------------------------------------

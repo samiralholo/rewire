@@ -17,6 +17,12 @@
  *   "what was hard" note carries no clear positive/negative sign.
  * - REFLECTION_RATE << outcome learning rate: one sentence must never
  *   outweigh logged behavioral events.
+ *
+ * Arabic morphology (Sprint 7): tokens on BOTH sides of the comparison are
+ * expanded with light stems (see stemmer.ts), so notes with attached
+ * particles — بالتوتر, كالقهوة, وللعمل — match the bare vocabulary forms.
+ * Expansion (raw + stem) rather than replacement keeps every match the
+ * unstemmed pipeline made, so stemming can only add recall, never lose it.
  */
 
 import { Q, type Database } from '@nozbe/watermelondb';
@@ -28,6 +34,7 @@ import {
   TriggerModel,
 } from '../db/models';
 import { DomainRegistry } from '../registry/DomainPack';
+import { stemToken } from './stemmer';
 import type { BehaviorId, DomainPackId } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -77,17 +84,31 @@ export function tokenize(text: string): Set<string> {
   const tokens = new Set<string>();
   for (const part of text.split(/[^\p{L}\p{N}]+/u)) {
     const token = normalizeToken(part);
-    if (token.length >= MIN_TOKEN_LENGTH) tokens.add(token);
+    if (token.length < MIN_TOKEN_LENGTH) continue;
+    tokens.add(token);
+    // Symmetric stem expansion: Arabic-script tokens also contribute their
+    // light stem, so prefix-attached forms meet bare vocabulary forms.
+    const stem = stemToken(token);
+    if (stem.length >= MIN_TOKEN_LENGTH) tokens.add(stem);
   }
   return tokens;
 }
 
-/** Content tokens of a label in a given locale (stopwords removed). */
+/**
+ * Content tokens of a label in a given locale (stopwords removed).
+ * Stopword filtering happens on RAW tokens; surviving tokens then expand
+ * with their stems — so a stopword can never sneak back in via stemming,
+ * and a stemmed content word (الطعام → طعام) is always available to match.
+ */
 const contentTokens = (label: string, locale: string): Set<string> => {
   const stop = STOPWORDS[locale] ?? new Set<string>();
   const result = new Set<string>();
-  for (const token of tokenize(label)) {
-    if (!stop.has(token)) result.add(token);
+  for (const part of label.split(/[^\p{L}\p{N}]+/u)) {
+    const token = normalizeToken(part);
+    if (token.length < MIN_TOKEN_LENGTH || stop.has(token)) continue;
+    result.add(token);
+    const stem = stemToken(token);
+    if (stem.length >= MIN_TOKEN_LENGTH && !stop.has(stem)) result.add(stem);
   }
   return result;
 };

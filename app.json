@@ -22,22 +22,26 @@
     "plugins": [
       "expo-localization",
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Rewire uses your location to notice place-based patterns in your day. Location data never leaves your device.",
+          "isAndroidBackgroundLocationEnabled": false
+        }
+      ],
+      [
         "expo-build-properties",
         {
           "android": {
-            "kotlinVersion": "1.9.25",
             "packagingOptions": {
               "pickFirst": [
                 "**/libc++_shared.so"
               ]
-            }
+            },
+            "kotlinVersion": "1.9.25"
           }
         }
       ],
-      "./plugins/withWatermelonJSIFix",
-      "@morrowdigital/watermelondb-expo-plugin",
-      "expo-asset",
-      "expo-font"
+      "@morrowdigital/watermelondb-expo-plugin"
     ],
     "updates": {
       "fallbackToCacheTimeout": 0
@@ -49,7 +53,6 @@
       "eas": {
         "projectId": "b3ac49ce-e3fe-492f-9eb9-017aa61d3d33"
       }
-    },
-    "owner": "samiralholo"
+    }
   }
 }

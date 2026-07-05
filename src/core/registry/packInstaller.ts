@@ -110,6 +110,7 @@ export async function installDomainPack(
         t.weight = seed.initialWeight;
         t.occurrenceCount = 0;
         t.isSystemDetected = false;
+        t.sensorBinding = seed.sensorBinding ?? null;
         t.createdAt = new Date(now);
         t.updatedAt = new Date(now);
       });

@@ -6,6 +6,7 @@
  *   riskScore = W_PRIOR    * pack.vulnerabilityPrior(ctx)   // domain knowledge
  *             + W_TEMPORAL * hourAffinity                    // learned rhythm
  *             + W_CUE      * cuePressure                     // learned twin edges
+ *             + W_ENV      * environmentPressure             // live device context
  *
  * and dispatches RISK_DETECTED to the craving actor when the blend crosses
  * the threshold. The machine's own guard (`isSignificantRisk`, >= 0.5) is the
@@ -25,6 +26,7 @@ import { TableName } from '../db/schema';
 import { CravingEventModel, HabitEdgeModel, TriggerModel } from '../db/models';
 import type { DomainPack, VulnerabilityContext } from '../registry/DomainPack';
 import type { CravingMachine } from '../machines/cravingMachine';
+import type { ContextProvider } from '../sensors/contextProvider';
 import type { BehaviorId, TriggerCategory, UnitInterval } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -36,6 +38,11 @@ export interface PredictionSchedulerOptions {
   actor: ActorRefFrom<CravingMachine>;
   pack: DomainPack;
   behaviorId: BehaviorId;
+  /**
+   * Optional device-context source. Absent (or permission-denied) the
+   * environment term contributes 0 and behavior matches pre-Sprint-8.
+   */
+  contextProvider?: ContextProvider;
   /** Evaluation cadence. Default: every 5 minutes. */
   intervalMs?: number;
   /** Dispatch threshold. Keep aligned with the machine guard. Default 0.5. */
@@ -53,6 +60,7 @@ export interface RiskEvaluation {
   prior: UnitInterval;
   hourAffinity: UnitInterval;
   cuePressure: UnitInterval;
+  environmentPressure: UnitInterval;
   dispatched: boolean;
 }
 
@@ -64,9 +72,13 @@ export interface PredictionScheduler {
 }
 
 // Blend weights: domain prior leads until the twin has enough data.
-const W_PRIOR = 0.45;
-const W_TEMPORAL = 0.3;
-const W_CUE = 0.25;
+const W_PRIOR = 0.35;
+const W_TEMPORAL = 0.25;
+const W_CUE = 0.2;
+const W_ENV = 0.2;
+/** A context transition (movement change / geofence cross) is a strong,
+ *  fresh signal; it decays back to nothing over this window. */
+const TRANSITION_FRESHNESS_MS = 10 * 60 * 1000;
 
 const DEFAULT_INTERVAL_MS = 5 * 60 * 1000;
 const DEFAULT_COOLDOWN_MS = 30 * 60 * 1000;
@@ -86,6 +98,7 @@ export function createPredictionScheduler(
     actor,
     pack,
     behaviorId,
+    contextProvider,
     intervalMs = DEFAULT_INTERVAL_MS,
     riskThreshold = 0.5,
     cooldownMs = DEFAULT_COOLDOWN_MS,
@@ -94,6 +107,7 @@ export function createPredictionScheduler(
   } = options;
 
   let handle: ReturnType<typeof setInterval> | null = null;
+  let unsubscribeContext: (() => void) | null = null;
   let lastDispatchAt = 0;
   let evaluating = false; // re-entrancy guard for slow queries
 
@@ -158,6 +172,47 @@ export function createPredictionScheduler(
     };
   };
 
+  // -- Learned signal 3: does live device context match a bound trigger? ----
+  const computeEnvironmentPressure = async (
+    at: Date,
+  ): Promise<UnitInterval> => {
+    if (!contextProvider) return 0;
+    const ctx = contextProvider.getContext();
+    if (ctx.movement === 'unknown' && ctx.activeGeofenceIds.length === 0) return 0;
+
+    const bound = (
+      await database
+        .get<TriggerModel>(TableName.TRIGGERS)
+        .query(
+          Q.where('behavior_id', behaviorId),
+          Q.where('sensor_binding', Q.notEq(null)),
+        )
+        .fetch()
+    ).filter((t) => t.sensorBinding !== null);
+
+    let pressure = 0;
+    for (const trigger of bound) {
+      const binding = trigger.sensorBinding;
+      if (!binding) continue;
+      const matches =
+        binding.kind === 'movement'
+          ? binding.movement === ctx.movement
+          : ctx.activeGeofenceIds.includes(trigger.id);
+      if (matches) pressure = Math.max(pressure, trigger.weight);
+    }
+    if (pressure === 0) return 0;
+
+    // Fresh transitions carry more signal than long-standing states:
+    // starting to drive is riskier than hour three of a road trip.
+    const sinceTransition =
+      ctx.lastTransitionAt !== null ? at.getTime() - ctx.lastTransitionAt : null;
+    const freshness =
+      sinceTransition !== null && sinceTransition < TRANSITION_FRESHNESS_MS
+        ? 1
+        : 0.5;
+    return clamp01(pressure * freshness);
+  };
+
   // -- One evaluation pass ---------------------------------------------------
   const evaluateNow = async (): Promise<RiskEvaluation> => {
     const at = now();
@@ -171,7 +226,8 @@ export function createPredictionScheduler(
       .fetch();
 
     const latest = events[0];
-    const { pressure: cuePressure, categories } = await computeCuePressure(events);
+    const [{ pressure: cuePressure, categories }, environmentPressure] =
+      await Promise.all([computeCuePressure(events), computeEnvironmentPressure(at)]);
 
     const ctx: VulnerabilityContext = {
       localHour: at.getHours(),
@@ -180,12 +236,16 @@ export function createPredictionScheduler(
         ? Math.round((at.getTime() - latest.occurredAt.getTime()) / 60_000)
         : null,
       recentTriggerCategories: categories,
+      movement: contextProvider?.getContext().movement ?? 'unknown',
     };
 
     const prior = clamp01(pack.vulnerabilityPrior?.(ctx) ?? 0);
     const hourAffinity = computeHourAffinity(events, at);
     const riskScore = clamp01(
-      W_PRIOR * prior + W_TEMPORAL * hourAffinity + W_CUE * cuePressure,
+      W_PRIOR * prior +
+        W_TEMPORAL * hourAffinity +
+        W_CUE * cuePressure +
+        W_ENV * environmentPressure,
     );
 
     // Dispatch rules: threshold + machine is idle + cooldown respected.
@@ -198,27 +258,43 @@ export function createPredictionScheduler(
       actor.send({ type: 'RISK_DETECTED', riskScore });
     }
 
-    return { riskScore, prior, hourAffinity, cuePressure, dispatched };
+    return {
+      riskScore,
+      prior,
+      hourAffinity,
+      cuePressure,
+      environmentPressure,
+      dispatched,
+    };
+  };
+
+  const safeEvaluate = (): void => {
+    if (evaluating) return;
+    evaluating = true;
+    evaluateNow()
+      .catch((error) => console.warn('[BOS] Risk evaluation failed', error))
+      .finally(() => {
+        evaluating = false;
+      });
   };
 
   return {
     start: () => {
       if (handle !== null) return; // already running
-      handle = setInterval(() => {
-        if (evaluating) return;
-        evaluating = true;
-        evaluateNow()
-          .catch((error) => console.warn('[BOS] Risk evaluation failed', error))
-          .finally(() => {
-            evaluating = false;
-          });
-      }, intervalMs);
+      handle = setInterval(safeEvaluate, intervalMs);
+      // Event-driven path: a boundary crossing or movement change should not
+      // wait up to a full interval — evaluate immediately. The cooldown and
+      // the machine's guard still bound how often this can DISPATCH.
+      unsubscribeContext =
+        contextProvider?.subscribe(() => safeEvaluate()) ?? null;
     },
     stop: () => {
       if (handle !== null) {
         clearInterval(handle);
         handle = null;
       }
+      unsubscribeContext?.();
+      unsubscribeContext = null;
     },
     evaluateNow,
   };
